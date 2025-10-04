@@ -85,10 +85,6 @@ const SUBSCRIPTION_PLANS = {
 
 // Initialize Stripe checkout
 const initializeStripe = (req) => {
-  if (!StripeCheckout) {
-    throw new Error('Stripe integration not available');
-  }
-  
   const apiKey = process.env.STRIPE_API_KEY;
   if (!apiKey) {
     throw new Error('Stripe API key not configured');
@@ -97,7 +93,7 @@ const initializeStripe = (req) => {
   const hostUrl = `${req.protocol}://${req.get('host')}`;
   const webhookUrl = `${hostUrl}/api/payments/webhook/stripe`;
   
-  return new StripeCheckout(apiKey, webhookUrl);
+  return createStripeCheckout(apiKey, webhookUrl);
 };
 
 // Get available subscription plans
