@@ -109,17 +109,18 @@ router.post('/submit',
           growthAreas: aiAnalysis?.analysis?.growth_plan?.focus_areas || ['autoconhecimento'],
           overallStyle: personalityAnalysis.overallStyle
         },
-        aiAnalysis: aiAnalysis ? {
-          personalityType: 'Explorador',
-          dominantTraits: aiAnalysis.personality_analysis.strengths || [],
-          growthAreas: aiAnalysis.personality_analysis.growth_areas || [],
-          strengths: aiAnalysis.personality_analysis.strengths || [],
-          communicationStyle: aiAnalysis.personality_analysis.communication_style || 'reflexivo',
+        aiAnalysis: {
+          personalityType: personalityAnalysis.overallStyle.name,
+          dominantTraits: personalityAnalysis.traits.map(t => t.name),
+          growthAreas: aiAnalysis?.personality_analysis?.growth_areas || ['autoconhecimento'],
+          strengths: personalityAnalysis.traits.filter(t => t.level === 'Alto').map(t => t.name),
+          communicationStyle: personalityAnalysis.overallStyle.name,
           motivationalFactors: ['Autoconhecimento', 'Crescimento pessoal'],
           stressIndicators: ['Pressão no trabalho', 'Incertezas'],
           copingStrategies: ['Mindfulness', 'Conversa com IA'],
-          confidenceScore: 0.8
-        } : {}
+          confidenceScore: 0.8,
+          localAnalysis: personalityAnalysis
+        }
       });
 
       // Calculate basic scores from answers
