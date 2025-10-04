@@ -8,63 +8,7 @@ const { personalityQuestions, analyzePersonality } = require('../data/quizQuesti
 
 const router = express.Router();
 
-// Quiz questions data
-const quizQuestions = [
-  {
-    id: 1,
-    question: "Como você se sente quando está sozinho(a)?",
-    type: "scale",
-    options: [
-      { value: 1, label: "Muito desconfortável" },
-      { value: 2, label: "Desconfortável" },
-      { value: 3, label: "Neutro" },
-      { value: 4, label: "Confortável" },
-      { value: 5, label: "Muito confortável" }
-    ]
-  },
-  {
-    id: 2,
-    question: "O que mais te preocupa atualmente?",
-    type: "multiple",
-    options: [
-      { value: "relacionamentos", label: "Relacionamentos" },
-      { value: "carreira", label: "Carreira" },
-      { value: "saude", label: "Saúde" },
-      { value: "financas", label: "Finanças" },
-      { value: "autoestima", label: "Autoestima" }
-    ]
-  },
-  {
-    id: 3,
-    question: "Como você lidaria com uma decisão difícil no trabalho?",
-    type: "text",
-    placeholder: "Descreva seu processo de tomada de decisão..."
-  },
-  {
-    id: 4,
-    question: "Quais são seus principais objetivos de vida?",
-    type: "multiple",
-    options: [
-      { value: "crescimento_pessoal", label: "Crescimento pessoal" },
-      { value: "sucesso_profissional", label: "Sucesso profissional" },
-      { value: "relacionamentos_saudaveis", label: "Relacionamentos saudáveis" },
-      { value: "saude_mental", label: "Saúde mental" },
-      { value: "estabilidade_financeira", label: "Estabilidade financeira" }
-    ]
-  },
-  {
-    id: 5,
-    question: "Como você reage ao estresse?",
-    type: "single",
-    options: [
-      { value: "isolamento", label: "Me isolo das outras pessoas" },
-      { value: "busco_ajuda", label: "Busco ajuda de amigos ou familiares" },
-      { value: "exercicios", label: "Faço exercícios ou atividades físicas" },
-      { value: "procrastino", label: "Procrastino ou evito o problema" },
-      { value: "enfrento", label: "Enfrento o problema diretamente" }
-    ]
-  }
-];
+// Use imported quiz questions
 
 /**
  * @route   GET /api/quiz/questions
