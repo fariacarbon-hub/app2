@@ -72,7 +72,10 @@ router.post('/submit',
       // Get previous results for comparison
       const previousResult = await QuizResult.getLatestByType(req.user._id, quizType);
 
-      // Generate AI analysis
+      // Analyze personality using local algorithm
+      const personalityAnalysis = analyzePersonality(answers);
+      
+      // Generate AI insights using the service
       let aiAnalysis = null;
       try {
         const analysisResult = await aiService.generateQuizInsights(
@@ -94,14 +97,17 @@ router.post('/submit',
         answers,
         completionTime,
         results: {
-          scores: {},
-          traits: aiAnalysis ? aiAnalysis.personality_analysis.traits : [],
-          insights: aiAnalysis ? aiAnalysis.insights : [],
-          recommendations: aiAnalysis ? aiAnalysis.recommendations.map(rec => ({
+          scores: personalityAnalysis.scores,
+          traits: personalityAnalysis.traits,
+          insights: personalityAnalysis.insights,
+          recommendations: personalityAnalysis.recommendations.map(rec => ({
             category: 'Geral',
             recommendation: rec,
             priority: 'media'
-          })) : []
+          })),
+          communicationStyle: personalityAnalysis.overallStyle.name,
+          growthAreas: aiAnalysis?.analysis?.growth_plan?.focus_areas || ['autoconhecimento'],
+          overallStyle: personalityAnalysis.overallStyle
         },
         aiAnalysis: aiAnalysis ? {
           personalityType: 'Explorador',
