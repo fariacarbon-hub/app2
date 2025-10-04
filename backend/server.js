@@ -96,6 +96,44 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/support', supportRoutes);
 // app.use('/api/payments', paymentsRoutes);
 
+// Simple payment routes
+const PaymentTransaction = require('./models/PaymentTransaction');
+const auth = require('./middleware/auth');
+
+// Get subscription plans
+app.get('/api/payments/plans', (req, res) => {
+  const plans = [
+    {
+      id: 'basic',
+      name: 'Plano Básico',
+      price: 9.99,
+      currency: 'usd',
+      features: [
+        'Chat ilimitado com IA',
+        'Até 5 objetivos ativos', 
+        'Analytics básicas',
+        'Suporte por email'
+      ]
+    },
+    {
+      id: 'premium',
+      name: 'Plano Premium',
+      price: 19.99,
+      currency: 'usd',
+      features: [
+        'Tudo do plano básico',
+        'Objetivos ilimitados',
+        'Analytics avançadas',
+        'Insights personalizados da IA',
+        'Suporte prioritário',
+        'Exportar dados'
+      ]
+    }
+  ];
+  
+  res.json({ success: true, data: { plans } });
+});
+
 // Root API endpoint
 app.get('/api/', (req, res) => {
   res.json({
