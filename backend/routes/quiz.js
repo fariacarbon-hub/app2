@@ -19,7 +19,7 @@ router.get('/questions', (req, res) => {
   res.json({
     success: true,
     data: {
-      questions: quizQuestions
+      questions: personalityQuestions
     }
   });
 });
