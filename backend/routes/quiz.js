@@ -57,7 +57,7 @@ router.post('/submit',
       const { quizType, answers, completionTime } = req.body;
 
       // Validate answers have required questions
-      const requiredQuestions = quizQuestions.map(q => q.id.toString());
+      const requiredQuestions = personalityQuestions.map(q => q.id.toString());
       const providedQuestions = Object.keys(answers);
       
       const missingQuestions = requiredQuestions.filter(q => !providedQuestions.includes(q));
