@@ -94,6 +94,7 @@ app.use('/api/goals', goalsRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // Root API endpoint
 app.get('/api/', (req, res) => {
