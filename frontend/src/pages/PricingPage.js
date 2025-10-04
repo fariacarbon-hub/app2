@@ -228,7 +228,7 @@ const PricingPage = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
+        )}
       </section>
 
       {/* Social Proof */}
