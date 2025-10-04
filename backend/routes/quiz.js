@@ -123,45 +123,7 @@ router.post('/submit',
         }
       });
 
-      // Calculate basic scores from answers
-      const scores = {};
-      
-      // Loneliness/Social comfort score (question 1)
-      if (answers['1']) {
-        scores.conforto_social = parseInt(answers['1']) * 2; // Scale to 10
-      }
-      
-      // Stress response (question 5)
-      if (answers['5']) {
-        const stressResponse = answers['5'];
-        switch (stressResponse) {
-          case 'enfrento':
-            scores.gestao_estresse = 9;
-            break;
-          case 'busco_ajuda':
-            scores.gestao_estresse = 8;
-            break;
-          case 'exercicios':
-            scores.gestao_estresse = 7;
-            break;
-          case 'procrastino':
-            scores.gestao_estresse = 4;
-            break;
-          case 'isolamento':
-            scores.gestao_estresse = 3;
-            break;
-          default:
-            scores.gestao_estresse = 5;
-        }
-      }
-
-      // Decision making (based on text response quality)
-      if (answers['3'] && typeof answers['3'] === 'string') {
-        const responseLength = answers['3'].length;
-        scores.tomada_decisao = Math.min(10, Math.max(3, Math.floor(responseLength / 10) + 3));
-      }
-
-      quizResult.results.scores = scores;
+      // Scores are now calculated by the personality analysis function
 
       await quizResult.save();
 
