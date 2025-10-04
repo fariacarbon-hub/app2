@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { Brain, Check, Star, ArrowLeft } from "lucide-react";
+import { Brain, Check, Star, ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { mockPricingPlans, mockStats } from "../data/mock";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../hooks/use-toast";
+import apiClient from "../services/api";
 
 const PricingPage = () => {
   const navigate = useNavigate();
