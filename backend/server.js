@@ -20,7 +20,7 @@ const goalsRoutes = require('./routes/goals');
 const quizRoutes = require('./routes/quiz');
 const analyticsRoutes = require('./routes/analytics');
 const supportRoutes = require('./routes/support');
-const paymentsRoutes = require('./routes/payments');
+// const paymentsRoutes = require('./routes/payments');
 
 const app = express();
 const server = createServer(app);
