@@ -209,13 +209,21 @@ const PricingPage = () => {
                 
                 <Button 
                   onClick={() => handleSelectPlan(plan.id)}
+                  disabled={processingPlan === plan.id}
                   className={`w-full ${
                     plan.popular 
                       ? 'bg-blue-500 hover:bg-blue-600 text-white' 
                       : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                   }`}
                 >
-                  {plan.cta}
+                  {processingPlan === plan.id ? (
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Processando...</span>
+                    </div>
+                  ) : (
+                    plan.cta
+                  )}
                 </Button>
               </CardContent>
             </Card>
