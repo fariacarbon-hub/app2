@@ -164,8 +164,13 @@ const PricingPage = () => {
 
       {/* Pricing Cards */}
       <section className="container mx-auto px-4 pb-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {mockPricingPlans.map((plan) => (
+        {loading ? (
+          <div className="flex justify-center items-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {plans.map((plan) => (
             <Card 
               key={plan.id} 
               className={`relative hover:shadow-xl transition-shadow ${
