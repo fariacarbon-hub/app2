@@ -4,6 +4,7 @@ const QuizResult = require('../models/QuizResult');
 const User = require('../models/User');
 const aiService = require('../services/aiService');
 const { auth } = require('../middleware/auth');
+const { personalityQuestions, analyzePersonality } = require('../data/quizQuestions');
 
 const router = express.Router();
 
