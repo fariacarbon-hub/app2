@@ -235,13 +235,13 @@ const PricingPage = () => {
       <section className="bg-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-8">
-            Mais de {mockStats.totalUsers} pessoas já transformaram suas vidas
+            Mais de 36.380+ pessoas já transformaram suas vidas
           </h2>
           
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <div className="text-center">
               <div className="text-4xl font-bold text-blue-600 mb-2">
-                {mockStats.successRate.betterDecisions}%
+                87%
               </div>
               <p className="text-gray-600">
                 relatam melhor tomada de decisão
@@ -249,7 +249,7 @@ const PricingPage = () => {
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-purple-600 mb-2">
-                {mockStats.successRate.selfAwareness}%
+                92%
               </div>
               <p className="text-gray-600">
                 experimentam maior autoconsciência
@@ -257,7 +257,7 @@ const PricingPage = () => {
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-green-600 mb-2">
-                {mockStats.successRate.goalProgress}%
+                78%
               </div>
               <p className="text-gray-600">
                 alcançam seus objetivos pessoais
@@ -271,9 +271,9 @@ const PricingPage = () => {
                 <Star key={star} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            <span className="text-lg font-medium">{mockStats.rating}/5</span>
+            <span className="text-lg font-medium">4.9/5</span>
             <span className="text-gray-500">
-              de {mockStats.reviews} avaliações
+              de 1.200+ avaliações
             </span>
           </div>
         </div>
