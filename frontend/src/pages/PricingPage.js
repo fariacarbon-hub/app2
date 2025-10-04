@@ -228,6 +228,7 @@ const PricingPage = () => {
               </CardContent>
             </Card>
           ))}
+          </div>
         )}
       </section>
 
