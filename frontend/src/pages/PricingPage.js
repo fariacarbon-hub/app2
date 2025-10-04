@@ -10,15 +10,95 @@ import apiClient from "../services/api";
 
 const PricingPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processingPlan, setProcessingPlan] = useState(null);
 
-  const handleSelectPlan = (planId) => {
+  // Load pricing plans
+  useEffect(() => {
+    const loadPlans = async () => {
+      try {
+        const response = await apiClient.get('/payments/plans');
+        if (response.success) {
+          // Add free plan and format pricing data
+          const freePlan = {
+            id: 'free',
+            name: 'Gratuito',
+            price: 0,
+            currency: 'usd',
+            popular: false,
+            features: [
+              '3 conversas por mês',
+              '1 objetivo ativo',
+              'Analytics básicas',
+              'Suporte por email'
+            ],
+            cta: 'Começar Grátis'
+          };
+
+          const paidPlans = response.data.plans.map(plan => ({
+            ...plan,
+            popular: plan.id === 'basic',
+            cta: plan.id === 'basic' ? 'Começar Agora' : 'Escolher Premium'
+          }));
+
+          setPlans([freePlan, ...paidPlans]);
+        }
+      } catch (error) {
+        console.error('Error loading plans:', error);
+        toast({
+          title: 'Erro ao carregar planos',
+          description: 'Tente novamente em alguns instantes',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPlans();
+  }, [toast]);
+
+  const handleSelectPlan = async (planId) => {
     if (planId === "free") {
       navigate("/registro");
-    } else if (planId === "enterprise") {
-      navigate("/contato");
-    } else {
-      // In a real app, this would redirect to payment processing
-      navigate("/registro");
+      return;
+    }
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setProcessingPlan(planId);
+      
+      const successUrl = `${window.location.origin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+      const cancelUrl = `${window.location.origin}/precos?payment=canceled`;
+
+      const response = await apiClient.post('/payments/checkout/session', {
+        planId,
+        successUrl,
+        cancelUrl
+      });
+
+      if (response.success) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.url;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: 'Erro no pagamento',
+        description: error.message || 'Tente novamente em alguns instantes',
+        variant: 'destructive'
+      });
+    } finally {
+      setProcessingPlan(null);
     }
   };
 
