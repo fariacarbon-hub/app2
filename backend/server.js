@@ -124,7 +124,7 @@ app.get('/api/payments/plans', (req, res) => {
     {
       id: 'premium',
       name: 'Plano Premium',
-      price: 19.99,
+      price: 27.90,
       currency: 'brl', // Changed to Brazilian Real
       stripePriceId: 'price_SUBSTITUA_PELO_ID_PREMIUM_REAL', // Stripe Price ID real
       features: [
