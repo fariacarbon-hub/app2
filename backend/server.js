@@ -111,7 +111,7 @@ app.get('/api/payments/plans', (req, res) => {
     {
       id: 'basic',
       name: 'Plano Básico',
-      price: 9.99,
+      price: 19.90,
       currency: 'brl', // Changed to Brazilian Real
       stripePriceId: 'price_SUBSTITUA_PELO_ID_REAL', // Stripe Price ID real
       features: [
