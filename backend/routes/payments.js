@@ -104,9 +104,9 @@ const SUBSCRIPTION_PLANS = {
   },
   premium: {
     name: 'Plano Premium',
-    price: 19.99,
-    currency: 'usd',
-    stripePriceId: 'price_1OExample2', // Replace with real Stripe Price ID
+    price: 27.90,
+    currency: 'brl',
+    stripePriceId: 'price_1SFifP79MMtl8NvouWKLoj3e', // Real Stripe Price ID - Premium
     features: [
       'Tudo do plano básico',
       'Objetivos ilimitados',
