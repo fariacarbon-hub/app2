@@ -13,7 +13,7 @@ const path = require('path');
 
 const createStripeCheckout = (apiKey, webhookUrl) => {
   return {
-    async create_checkout_session_with_price_id(request) {
+    async create_checkout_session(request) {
       return new Promise((resolve, reject) => {
         const pythonScript = path.join(__dirname, 'services/stripeService.py');
         const metadata = JSON.stringify(request.metadata || {});
