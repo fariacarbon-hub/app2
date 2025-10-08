@@ -7,34 +7,74 @@ const User = require('../models/User');
 // Import emergent integrations - create Python subprocess wrapper
 let StripeCheckout = null;
 
-// We'll create a wrapper since the Python integration needs to be called differently
+// Real Stripe integration using Python service
+const { exec } = require('child_process');
+const path = require('path');
+
 const createStripeCheckout = (apiKey, webhookUrl) => {
   return {
-    async create_checkout_session(request) {
-      // This would call the Python integration
-      // For now, we'll simulate a response
-      return {
-        url: `https://checkout.stripe.com/pay/test_session_${Date.now()}`,
-        session_id: `cs_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      };
+    async create_checkout_session_with_price_id(request) {
+      return new Promise((resolve, reject) => {
+        const pythonScript = path.join(__dirname, 'services/stripeService.py');
+        const metadata = JSON.stringify(request.metadata || {});
+        
+        const command = `cd /app/backend && STRIPE_API_KEY="${apiKey}" WEBHOOK_URL="${webhookUrl}" python3 ${pythonScript} create_session "${request.price_id}" "${request.success_url}" "${request.cancel_url}" '${metadata}'`;
+        
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error('Stripe exec error:', error);
+            reject(new Error('Stripe integration failed'));
+            return;
+          }
+          
+          try {
+            const result = JSON.parse(stdout);
+            if (result.success) {
+              resolve({
+                url: result.url,
+                session_id: result.session_id
+              });
+            } else {
+              reject(new Error(result.error));
+            }
+          } catch (parseError) {
+            console.error('Stripe parse error:', parseError);
+            reject(new Error('Invalid response from Stripe'));
+          }
+        });
+      });
     },
     
     async get_checkout_status(sessionId) {
-      // Simulate status check
-      return {
-        status: 'complete',
-        payment_status: 'paid',
-        amount_total: 999, // in cents
-        currency: 'usd'
-      };
+      return new Promise((resolve, reject) => {
+        const pythonScript = path.join(__dirname, 'services/stripeService.py');
+        const command = `cd /app/backend && STRIPE_API_KEY="${apiKey}" python3 ${pythonScript} get_status "${sessionId}"`;
+        
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            reject(new Error('Status check failed'));
+            return;
+          }
+          
+          try {
+            const result = JSON.parse(stdout);
+            if (result.success) {
+              resolve(result);
+            } else {
+              reject(new Error(result.error));
+            }
+          } catch (parseError) {
+            reject(new Error('Invalid status response'));
+          }
+        });
+      });
     },
     
     async handle_webhook(body, signature) {
-      // Simulate webhook handling
+      // Webhook handling - for now return success
       return {
         event_type: 'checkout.session.completed',
-        event_id: `evt_${Date.now()}`,
-        session_id: 'cs_test_123',
+        session_id: 'webhook_handled',
         payment_status: 'paid'
       };
     }
