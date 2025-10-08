@@ -87,9 +87,9 @@ const router = express.Router();
 const SUBSCRIPTION_PLANS = {
   basic: {
     name: 'Plano Básico',
-    price: 9.99,
-    currency: 'usd',
-    stripePriceId: 'price_1OExample1', // Replace with real Stripe Price ID
+    price: 19.90,
+    currency: 'brl',
+    stripePriceId: 'price_1SFiej79MMtl8NvoeAbkpTns', // Real Stripe Price ID - Básico
     features: [
       'Chat ilimitado com IA',
       'Até 5 objetivos ativos',
