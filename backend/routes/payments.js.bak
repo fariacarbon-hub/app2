@@ -210,8 +210,7 @@ router.post('/checkout/session', [
     
     // Create checkout session request
     const checkoutRequest = {
-      amount: plan.price,
-      currency: plan.currency,
+      price_id: plan.stripePriceId,
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -223,7 +222,7 @@ router.post('/checkout/session', [
     };
 
     // Create Stripe checkout session
-    const session = await stripeCheckout.create_checkout_session(checkoutRequest);
+    const session = await stripeCheckout.create_checkout_session_with_price_id(checkoutRequest);
     
     // Create payment transaction record
     const transaction = new PaymentTransaction({
