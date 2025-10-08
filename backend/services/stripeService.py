@@ -24,7 +24,7 @@ async def create_checkout_session(price_id, success_url, cancel_url, metadata):
             'metadata': metadata
         }
         
-        session = await stripe_checkout.create_checkout_session_with_price_id(request_data)
+        session = await stripe_checkout.create_checkout_session(request_data)
         
         return {
             'success': True,
