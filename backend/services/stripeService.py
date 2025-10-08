@@ -85,7 +85,7 @@ async def handle_webhook(body, signature):
             'error': str(e)
         }
 
-if __name__ == '__main__':
+async def main():
     if len(sys.argv) < 2:
         print(json.dumps({'success': False, 'error': 'No action specified'}))
         sys.exit(1)
@@ -102,7 +102,7 @@ if __name__ == '__main__':
         cancel_url = sys.argv[4]
         metadata = json.loads(sys.argv[5])
         
-        result = create_checkout_session(price_id, success_url, cancel_url, metadata)
+        result = await create_checkout_session(price_id, success_url, cancel_url, metadata)
         print(json.dumps(result))
         
     elif action == 'get_status':
@@ -111,9 +111,12 @@ if __name__ == '__main__':
             sys.exit(1)
             
         session_id = sys.argv[2]
-        result = get_checkout_status(session_id)
+        result = await get_checkout_status(session_id)
         print(json.dumps(result))
         
     else:
         print(json.dumps({'success': False, 'error': 'Invalid action'}))
         sys.exit(1)
+
+if __name__ == '__main__':
+    asyncio.run(main())
