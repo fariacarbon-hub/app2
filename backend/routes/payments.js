@@ -222,7 +222,7 @@ router.post('/checkout/session', [
     };
 
     // Create Stripe checkout session
-    const session = await stripeCheckout.create_checkout_session_with_price_id(checkoutRequest);
+    const session = await stripeCheckout.create_checkout_session(checkoutRequest);
     
     // Create payment transaction record
     const transaction = new PaymentTransaction({
