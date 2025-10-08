@@ -62,7 +62,7 @@ async def get_checkout_status(session_id):
             'error': str(e)
         }
 
-def handle_webhook(body, signature):
+async def handle_webhook(body, signature):
     """Handle Stripe webhook"""
     try:
         api_key = os.getenv('STRIPE_API_KEY')
@@ -70,7 +70,7 @@ def handle_webhook(body, signature):
         
         stripe_checkout = StripeCheckout(api_key, webhook_url)
         
-        webhook_response = stripe_checkout.handle_webhook(body, signature)
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
         
         return {
             'success': True,
