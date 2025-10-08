@@ -2,9 +2,10 @@
 import os
 import sys
 import json
+import asyncio
 from emergentintegrations.payments.stripe.checkout import StripeCheckout
 
-def create_checkout_session(price_id, success_url, cancel_url, metadata):
+async def create_checkout_session(price_id, success_url, cancel_url, metadata):
     """Create a Stripe checkout session"""
     try:
         api_key = os.getenv('STRIPE_API_KEY')
@@ -23,7 +24,7 @@ def create_checkout_session(price_id, success_url, cancel_url, metadata):
             'metadata': metadata
         }
         
-        session = stripe_checkout.create_checkout_session_with_price_id(request_data)
+        session = await stripe_checkout.create_checkout_session_with_price_id(request_data)
         
         return {
             'success': True,
@@ -37,7 +38,7 @@ def create_checkout_session(price_id, success_url, cancel_url, metadata):
             'error': str(e)
         }
 
-def get_checkout_status(session_id):
+async def get_checkout_status(session_id):
     """Get checkout session status"""
     try:
         api_key = os.getenv('STRIPE_API_KEY')
@@ -45,7 +46,7 @@ def get_checkout_status(session_id):
         
         stripe_checkout = StripeCheckout(api_key, webhook_url)
         
-        status = stripe_checkout.get_checkout_status(session_id)
+        status = await stripe_checkout.get_checkout_status(session_id)
         
         return {
             'success': True,
