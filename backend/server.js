@@ -113,7 +113,7 @@ app.get('/api/payments/plans', (req, res) => {
       name: 'Plano Básico',
       price: 19.90,
       currency: 'brl', // Changed to Brazilian Real
-      stripePriceId: 'price_SUBSTITUA_PELO_ID_REAL', // Stripe Price ID real
+      stripePriceId: 'price_1SFiej79MMtl8NvoeAbkpTns', // Stripe Price ID REAL - Básico
       features: [
         'Chat ilimitado com IA',
         'Até 5 objetivos ativos', 
