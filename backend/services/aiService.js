@@ -280,20 +280,24 @@ Retorne um JSON com:
   "motivation_boost": "mensagem motivacional personalizada"
 }`;
 
-      const response = await axios.post(`${this.baseURL}/chat/completions`, {
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 500,
-        temperature: 0.7
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const insights = JSON.parse(response.data.choices[0].message.content);
-      return { success: true, insights };
+      const response = await this.callEmergentLLM("", [], prompt);
+      
+      try {
+        const insights = JSON.parse(response);
+        return { success: true, insights };
+      } catch (e) {
+        return { 
+          success: false, 
+          insights: {
+            insights: ["Continue focando em seus objetivos diários."],
+            recommendations: [
+              {"recommendation": "Mantenha a consistência nas suas ações.", "type": "strategy", "priority": "alta"}
+            ],
+            next_steps: ["Definir próxima meta específica"],
+            motivation_boost: "Você está no caminho certo! Continue assim!"
+          }
+        };
+      }
       
     } catch (error) {
       console.error('Goal Insights Error:', error.message);
