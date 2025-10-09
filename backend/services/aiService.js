@@ -85,7 +85,6 @@ class AIService {
       const messagesJson = JSON.stringify(messages);
       
       // Write messages to temp file to avoid shell escaping issues
-      const fs = require('fs');
       const tempFile = `/tmp/messages_${Date.now()}.json`;
       fs.writeFileSync(tempFile, messagesJson);
       
