@@ -81,7 +81,7 @@ class AIService {
         { role: 'user', content: userMessage }
       ];
       
-      const messagesJson = JSON.stringify(messages).replace(/"/g, '\\"');
+      const messagesJson = JSON.stringify(messages);
       
       const command = `cd /app/backend/services && EMERGENT_LLM_KEY="${this.apiKey}" python3 emergentLLM.py "${messagesJson}"`;
       
