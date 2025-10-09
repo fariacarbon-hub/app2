@@ -1,9 +1,9 @@
-const axios = require('axios');
+const { exec } = require('child_process');
+const path = require('path');
 
 class AIService {
   constructor() {
     this.apiKey = process.env.EMERGENT_LLM_KEY;
-    this.baseURL = 'https://api.emergentmethods.ai/v1';
     
     // Conversation context management
     this.contextWindow = 20; // Number of messages to include in context
