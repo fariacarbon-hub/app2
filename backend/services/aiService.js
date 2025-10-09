@@ -19,54 +19,39 @@ class AIService {
   }
 
   /**
-   * Generate AI response for chat conversation
+   * Generate AI response for chat conversation using Emergent Integrations
    */
   async generateResponse(userId, conversationHistory, userMessage, userProfile = {}) {
     try {
       const context = this.buildConversationContext(conversationHistory, userProfile);
       const systemPrompt = this.buildSystemPrompt(userProfile);
       
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...context,
-        { role: 'user', content: userMessage }
-      ];
-
       const startTime = Date.now();
       
-      const response = await axios.post(`${this.baseURL}/chat/completions`, {
-        model: 'gpt-4o-mini', // Using cost-effective model for development
-        messages: messages,
-        max_tokens: this.maxTokens,
-        temperature: 0.7,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const responseTime = Date.now() - startTime;
-      const aiMessage = response.data.choices[0].message.content;
+      // Call Python integration
+      const aiResponse = await this.callEmergentLLM(systemPrompt, context, userMessage);
       
+      const responseTime = Date.now() - startTime;
+
+      // Log successful response
+      console.log(`AI Response Generated: ${responseTime}ms`);
+
       return {
         success: true,
-        message: aiMessage,
+        message: aiResponse,
         metadata: {
           model: 'gpt-4o-mini',
           responseTime,
           tokens: {
-            input: response.data.usage?.prompt_tokens || 0,
-            output: response.data.usage?.completion_tokens || 0,
-            total: response.data.usage?.total_tokens || 0
+            input: 0, // Will be tracked by Emergent
+            output: 0,
+            total: 0
           }
         }
       };
-      
+
     } catch (error) {
-      console.error('AI Service Error:', error.response?.data || error.message);
+      console.error('AI Service Error:', error.message);
       
       // Fallback response
       return {
@@ -80,6 +65,51 @@ class AIService {
         error: error.message
       };
     }
+  }
+
+  /**
+   * Call Emergent LLM using Python integration
+   */
+  async callEmergentLLM(systemPrompt, context, userMessage) {
+    return new Promise((resolve, reject) => {
+      const pythonScript = path.join(__dirname, 'emergentLLM.py');
+      
+      // Prepare messages for AI
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...context,
+        { role: 'user', content: userMessage }
+      ];
+      
+      const messagesJson = JSON.stringify(messages).replace(/"/g, '\\"');
+      
+      const command = `cd /app/backend/services && EMERGENT_LLM_KEY="${this.apiKey}" python3 emergentLLM.py "${messagesJson}"`;
+      
+      exec(command, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
+        if (error) {
+          console.error('Python exec error:', error);
+          reject(new Error('AI integration failed'));
+          return;
+        }
+        
+        if (stderr) {
+          console.error('Python stderr:', stderr);
+        }
+        
+        try {
+          const result = JSON.parse(stdout);
+          if (result.success) {
+            resolve(result.response);
+          } else {
+            reject(new Error(result.error || 'AI call failed'));
+          }
+        } catch (parseError) {
+          console.error('Parse error:', parseError);
+          console.error('Raw stdout:', stdout);
+          reject(new Error('Invalid AI response'));
+        }
+      });
+    });
   }
 
   /**
