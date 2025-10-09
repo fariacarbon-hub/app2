@@ -197,9 +197,66 @@ const ChatPage = () => {
     }
   };
 
-  const generateLocalAIResponse = (userMessage) => {
-    // Fallback should never be needed now, but just in case
-    return `Desculpe, tive um problema momentâneo. Pode repetir sua pergunta?`;
+  const generateIntelligentResponse = (message) => {
+    const msg = message.toLowerCase();
+    
+    const responses = {
+      greeting: [
+        "Olá! É ótimo te ver aqui novamente. Como você está se sentindo hoje? Há algo específico que gostaria de conversar ou explorar juntos?",
+        "Oi! Que bom que você veio conversar comigo. Me conte, como tem sido seu dia? O que está passando pela sua mente?",
+        "Olá! Estou aqui para te ouvir e apoiar. Como você está? Tem algo que te chamou a atenção hoje?"
+      ],
+      help: [
+        "Claro, estou aqui para ajudar! Me conte mais sobre o que você precisa. Quanto mais você compartilhar, melhor posso te apoiar.",
+        "Vou te ajudar com prazer! Pode me explicar melhor a situação? Às vezes falar sobre os detalhes já nos ajuda a ver as coisas com mais clareza.",
+        "Conte comigo! Me fale mais sobre o que está acontecendo. Juntos podemos encontrar uma perspectiva que funcione para você."
+      ],
+      feelings: [
+        "Entendo que você está passando por isso. Seus sentimentos são válidos e é importante reconhecê-los. Como isso tem afetado você?",
+        "Obrigado por compartilhar isso comigo. Sentimentos podem ser complexos, né? Me conte mais sobre como você tem lidado com essa situação.",
+        "É corajoso da sua parte falar sobre esses sentimentos. Como você se sentiria se pudesse mudar algo sobre essa situação?"
+      ],
+      goals: [
+        "Que interessante! Objetivos são importantes para nosso crescimento. Me conte mais sobre o que te motiva em relação a isso.",
+        "Fico feliz que você esteja pensando em objetivos! Qual seria o primeiro pequeno passo que você poderia dar hoje?",
+        "Ótimo foco! Ter objetivos nos dá direção. Como você imagina sua vida quando alcançar isso?"
+      ],
+      work: [
+        "Trabalho é uma parte importante da vida! Me conte mais sobre sua situação profissional. O que tem te desafiado ultimamente?",
+        "Entendo que o trabalho pode ser complexo. Como você tem se sentido em relação às suas responsabilidades?",
+        "Que bom que você quer conversar sobre trabalho! Qual aspecto tem chamado mais sua atenção?"
+      ],
+      stress: [
+        "Estresse é algo que todos enfrentamos. Você está sendo muito corajoso ao reconhecer isso. O que mais tem te preocupado?",
+        "Entendo que você está se sentindo sobrecarregado. Vamos pensar juntos em algumas estratégias. O que costuma te relaxar?",
+        "É normal sentir estresse às vezes. Me conte mais sobre o que está acontecendo - às vezes falar já ajuda a organizar os pensamentos."
+      ],
+      default: [
+        "Interessante perspectiva! Me conte mais sobre isso. Sua forma de ver as coisas sempre traz insights valiosos. O que mais você pensa sobre essa questão?",
+        "Entendo onde você quer chegar. Cada situação é única e merece nossa atenção. Como você se sente quando pensa sobre isso?",
+        "Vejo que há algo importante aí para você. Sua capacidade de reflexão é admirável. Que aspectos dessa situação te chamam mais a atenção?",
+        "Percebo que isso é significativo para você. É normal termos diferentes perspectivas. Como isso se conecta com o que você tem vivido?",
+        "Que reflexão interessante! Sua disposição para pensar sobre as coisas mostra maturidade. O que você acha que isso revela sobre você?"
+      ]
+    };
+    
+    let responseArray = responses.default;
+    
+    if (msg.includes('olá') || msg.includes('oi') || msg.includes('hello') || msg.includes('hey')) {
+      responseArray = responses.greeting;
+    } else if (msg.includes('ajud') || msg.includes('help') || msg.includes('precis') || msg.includes('apoio')) {
+      responseArray = responses.help;
+    } else if (msg.includes('sinto') || msg.includes('sentindo') || msg.includes('emoç') || msg.includes('trist') || msg.includes('feliz') || msg.includes('ansios') || msg.includes('preocup')) {
+      responseArray = responses.feelings;
+    } else if (msg.includes('objetivo') || msg.includes('meta') || msg.includes('quero') || msg.includes('plano') || msg.includes('sonho') || msg.includes('futuro')) {
+      responseArray = responses.goals;
+    } else if (msg.includes('trabalho') || msg.includes('emprego') || msg.includes('carreira') || msg.includes('profiss') || msg.includes('chefe')) {
+      responseArray = responses.work;
+    } else if (msg.includes('stress') || msg.includes('estress') || msg.includes('cansad') || msg.includes('sobrecarreg') || msg.includes('pressão')) {
+      responseArray = responses.stress;
+    }
+    
+    return responseArray[Math.floor(Math.random() * responseArray.length)];
   };
 
   const handleKeyPress = (e) => {
