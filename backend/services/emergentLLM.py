@@ -3,10 +3,8 @@ import os
 import sys
 import json
 import asyncio
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# No need for dotenv since we pass env vars directly
 
 try:
     from emergentintegrations.llm.chat import LlmChat, UserMessage
