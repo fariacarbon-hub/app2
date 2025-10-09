@@ -63,12 +63,24 @@ async def process_chat(messages_json):
 
 async def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"success": False, "error": "No messages provided"}))
+        print(json.dumps({"success": False, "error": "No messages file provided"}))
         return
     
-    messages_json = sys.argv[1]
-    result = await process_chat(messages_json)
-    print(json.dumps(result))
+    messages_file = sys.argv[1]
+    
+    try:
+        # Read messages from file
+        with open(messages_file, 'r') as f:
+            messages_json = f.read()
+        
+        # Clean up temp file
+        os.unlink(messages_file)
+        
+        result = await process_chat(messages_json)
+        print(json.dumps(result))
+    except Exception as e:
+        print(json.dumps({"success": False, "error": f"File processing error: {str(e)}"}))
+    
 
 if __name__ == "__main__":
     asyncio.run(main())
