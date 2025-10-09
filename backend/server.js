@@ -61,9 +61,34 @@ app.use(helmet({
 app.use(compression());
 // app.use(mongoSanitize()); // Temporarily disabled due to compatibility issue
 
-// CORS configuration
+// CORS configuration - Allow multiple origins
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      /https:\/\/.*\.emergent\.host$/,
+      /https:\/\/.*\.emergent\.sh$/
+    ];
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = allowedOrigins.some(pattern => {
+      if (typeof pattern === 'string') {
+        return pattern === origin;
+      } else {
+        return pattern.test(origin);
+      }
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with'],
