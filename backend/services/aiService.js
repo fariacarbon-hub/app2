@@ -197,36 +197,37 @@ Se o usuário estiver em crise ou mencionar auto-lesão, encoraje buscar ajuda p
    */
   async analyzeMessage(message) {
     try {
-      const response = await axios.post(`${this.baseURL}/chat/completions`, {
-        model: 'gpt-4o-mini',
-        messages: [{
-          role: 'system',
-          content: `Analise a seguinte mensagem e retorne um JSON com:
+      const prompt = `Analise a seguinte mensagem e retorne um JSON com:
 {
   "sentiment": {"score": número entre -1 e 1, "label": "very_positive|positive|neutral|negative|very_negative"},
   "emotions": [{"emotion": "nome_da_emoção", "confidence": número entre 0 e 1}],
   "topics": [{"topic": "tópico", "relevance": número entre 0 e 1}],
   "urgency": "baixa|media|alta",
   "needs_followup": true/false
-}`
-        }, {
-          role: 'user', 
-          content: message
-        }],
-        max_tokens: 300,
-        temperature: 0.3
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+}
 
-      const analysis = JSON.parse(response.data.choices[0].message.content);
-      return {
-        success: true,
-        analysis
-      };
+Mensagem: "${message}"`;
+
+      const response = await this.callEmergentLLM("", [], prompt);
+      
+      try {
+        const analysis = JSON.parse(response);
+        return {
+          success: true,
+          analysis
+        };
+      } catch (e) {
+        return {
+          success: false,
+          analysis: {
+            sentiment: { score: 0, label: "neutral" },
+            emotions: [{ emotion: "calm", confidence: 0.7 }],
+            topics: [{ topic: "general", relevance: 0.5 }],
+            urgency: "baixa",
+            needs_followup: false
+          }
+        };
+      }
       
     } catch (error) {
       console.error('Message Analysis Error:', error.message);
