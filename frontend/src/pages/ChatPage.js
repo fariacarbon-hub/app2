@@ -151,30 +151,29 @@ const ChatPage = () => {
       
       setMessages(prev => [...prev, userMessageObj]);
 
-      // Try backend first, fallback to local AI
+      // ALWAYS use backend API - force real AI
       let aiResponse = null;
       
       try {
-        if (currentConversation._id.startsWith('local-')) {
-          // Local conversation - use local AI response
-          aiResponse = generateLocalAIResponse(userMessage);
+        console.log('Sending to backend conversation:', currentConversation._id);
+        
+        const response = await chatAPI.sendMessage(currentConversation._id, {
+          content: userMessage,
+          type: 'user'
+        });
+        
+        console.log('Backend response:', response);
+        
+        if (response.success && response.data && response.data.aiResponse && response.data.aiResponse.content) {
+          aiResponse = response.data.aiResponse.content;
+          console.log('AI Response received:', aiResponse.substring(0, 50));
         } else {
-          // Try backend
-          const response = await chatAPI.sendMessage(currentConversation._id, {
-            content: userMessage,
-            type: 'user'
-          });
-          
-          if (response.success && response.data.aiResponse) {
-            aiResponse = response.data.aiResponse.content;
-          } else {
-            // Backend failed, use local AI
-            aiResponse = generateLocalAIResponse(userMessage);
-          }
+          console.error('Backend response invalid:', response);
+          aiResponse = 'Erro: Não consegui processar sua mensagem. Tente novamente.';
         }
       } catch (backendError) {
-        console.log('Backend unavailable, using local AI:', backendError);
-        aiResponse = generateLocalAIResponse(userMessage);
+        console.error('Backend error:', backendError);
+        aiResponse = 'Erro de conexão com servidor. Verifique sua internet e tente novamente.';
       }
 
       // Add AI response after delay
