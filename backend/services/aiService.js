@@ -72,12 +72,10 @@ class AIService {
    * Call Emergent LLM using Python integration
    */
   async callEmergentLLM(systemPrompt, context, userMessage) {
-    return new Promise((resolve, reject) => {
-      const pythonScript = path.join(__dirname, 'emergentLLM.py');
-      
+    try {
       // Prepare messages for AI
       const messages = [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: systemPrompt || 'Você é YOU, um gêmeo IA empático. Responda em português brasileiro de forma natural e acolhedora.' },
         ...context,
         { role: 'user', content: userMessage }
       ];
@@ -85,36 +83,69 @@ class AIService {
       const messagesJson = JSON.stringify(messages);
       
       // Write messages to temp file to avoid shell escaping issues
-      const tempFile = `/tmp/messages_${Date.now()}.json`;
+      const tempFile = `/tmp/messages_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.json`;
       fs.writeFileSync(tempFile, messagesJson);
       
-      const command = `cd /app/backend/services && EMERGENT_LLM_KEY="${this.apiKey}" python3 emergentLLM.py "${tempFile}"`;
-      
-      exec(command, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
-        if (error) {
-          console.error('Python exec error:', error);
-          reject(new Error('AI integration failed'));
-          return;
-        }
+      return new Promise((resolve, reject) => {
+        const pythonScript = path.join(__dirname, 'emergentLLM.py');
+        const command = `cd ${path.dirname(pythonScript)} && EMERGENT_LLM_KEY="${this.apiKey}" python3 "${pythonScript}" "${tempFile}"`;
         
-        if (stderr) {
-          console.error('Python stderr:', stderr);
-        }
+        console.log('Executing AI command:', command.replace(this.apiKey, 'sk-***'));
         
-        try {
-          const result = JSON.parse(stdout);
-          if (result.success) {
-            resolve(result.response);
-          } else {
-            reject(new Error(result.error || 'AI call failed'));
+        exec(command, { 
+          maxBuffer: 2 * 1024 * 1024, // 2MB buffer
+          timeout: 15000 // 15s timeout
+        }, (error, stdout, stderr) => {
+          // Clean up temp file
+          try {
+            fs.unlinkSync(tempFile);
+          } catch (e) {
+            console.warn('Could not clean temp file:', e.message);
           }
-        } catch (parseError) {
-          console.error('Parse error:', parseError);
-          console.error('Raw stdout:', stdout);
-          reject(new Error('Invalid AI response'));
-        }
+          
+          if (error) {
+            console.error('Python exec error:', {
+              code: error.code,
+              signal: error.signal,
+              cmd: command.replace(this.apiKey, 'sk-***'),
+              stderr: stderr
+            });
+            reject(new Error(`AI integration failed: ${error.message}`));
+            return;
+          }
+          
+          if (stderr && !stdout) {
+            console.error('Python stderr only:', stderr);
+            reject(new Error('Python script error'));
+            return;
+          }
+          
+          if (!stdout.trim()) {
+            console.error('Empty response from Python script');
+            reject(new Error('Empty AI response'));
+            return;
+          }
+          
+          try {
+            const result = JSON.parse(stdout.trim());
+            if (result.success) {
+              resolve(result.response);
+            } else {
+              reject(new Error(result.error || 'AI call failed'));
+            }
+          } catch (parseError) {
+            console.error('Parse error:', {
+              error: parseError.message,
+              stdout: stdout.substring(0, 200)
+            });
+            reject(new Error('Invalid AI response format'));
+          }
+        });
       });
-    });
+    } catch (error) {
+      console.error('AI setup error:', error);
+      throw new Error('AI service setup failed');
+    }
   }
 
   /**
