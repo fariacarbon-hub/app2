@@ -125,6 +125,7 @@ app.use('/api/goals', goalsRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/payments', paymentsRoutes);
 
 // Payment routes are handled by /routes/payments.js
