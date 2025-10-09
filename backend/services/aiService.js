@@ -347,20 +347,29 @@ Retorne um JSON com:
   }
 }`;
 
-      const response = await axios.post(`${this.baseURL}/chat/completions`, {
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 600,
-        temperature: 0.7
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const analysis = JSON.parse(response.data.choices[0].message.content);
-      return { success: true, analysis };
+      const response = await this.callEmergentLLM("", [], prompt);
+      
+      try {
+        const analysis = JSON.parse(response);
+        return { success: true, analysis };
+      } catch (e) {
+        return { 
+          success: false, 
+          analysis: {
+            personality_analysis: {
+              traits: ["equilibrado", "reflexivo"],
+              scores: { openness: 7, conscientiousness: 6, extraversion: 5 },
+              communication_style: "balanced"
+            },
+            insights: ["Você demonstra uma personalidade equilibrada com tendências reflexivas."],
+            recommendations: ["Continue desenvolvendo autoconhecimento através de práticas regulares."],
+            growth_plan: {
+              focus_areas: ["autoconhecimento", "comunicação"],
+              suggested_goals: ["Praticar mindfulness", "Melhorar comunicação interpessoal"]
+            }
+          }
+        };
+      }
       
     } catch (error) {
       console.error('Quiz Analysis Error:', error.message);
