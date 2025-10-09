@@ -466,7 +466,9 @@ router.post('/conversations/:id/messages',
         success: true,
         message: 'Mensagem enviada com sucesso',
         data: {
-          messages: responseMessages
+          messages: responseMessages,
+          message: userMessage,
+          aiResponse: aiMessage
         }
       });
 
