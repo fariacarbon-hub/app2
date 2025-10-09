@@ -210,97 +210,130 @@ const ChatPage = () => {
     }
   };
 
-  const generateIntelligentResponse = (message) => {
-    const msg = message.toLowerCase().trim();
-    
-    // Specific responses for negative feelings
-    if (msg === 'mal' || msg === 'ruim' || msg === 'péssimo' || msg === 'horrível') {
-      return "Sinto muito que você esteja se sentindo assim. Quero te ouvir. Pode me contar o que está te deixando mal? Às vezes desabafar ajuda a aliviar um pouco o peso que estamos carregando.";
-    }
-    
-    // Change topic requests
-    if (msg.includes('fala de outra coisa') || msg.includes('muda de assunto') || msg.includes('outra coisa')) {
-      const topics = [
-        "Que tal conversarmos sobre algo que te deixa feliz? Qual foi a última coisa que te fez sorrir genuinamente?",
-        "Vamos falar de algo positivo! Me conte sobre um lugar onde você se sente em paz. Como é esse lugar?",
-        "Mudando de assunto... se você pudesse fazer qualquer coisa hoje, sem limitações, o que seria?",
-        "Que tal falarmos sobre seus hobbies? Existe algo que você gosta de fazer no seu tempo livre?",
-        "Vamos para algo mais leve! Se você pudesse ter um superpoder, qual seria e por quê?"
-      ];
-      return topics[Math.floor(Math.random() * topics.length)];
-    }
-    
-    // English responses
-    if (msg.includes('do you get me') || msg.includes('you understand')) {
-      return "Sim, eu te entendo! E percebo que você está tentando se comunicar comigo. Estou aqui para te ouvir de verdade. Pode falar em português ou inglês, como preferir. O que você gostaria de compartilhar?";
-    }
-    
-    const responses = {
-      greeting: [
-        "Olá! É ótimo te ver aqui. Como você está se sentindo hoje? Estou aqui para te ouvir, sem julgamentos.",
-        "Oi! Que bom que você veio conversar comigo. Me conte, o que está na sua mente hoje?",
-        "Olá! Este é um espaço seguro para você. Como posso te apoiar hoje?"
-      ],
+  // REAL AI FUNCTION - NO LIMITS, PURE CONTEXT-BASED RESPONSES
+  const generateRealAIResponse = async (userMessage, conversationHistory) => {
+    try {
+      // Build conversation context from history
+      const recentMessages = conversationHistory.slice(-10); // Last 10 messages
+      const conversationContext = recentMessages.map(msg => 
+        `${msg.sender === 'user' ? 'Usuário' : 'IA'}: ${msg.content}`
+      ).join('\n');
+
+      // Create dynamic system prompt based on context
+      const systemPrompt = `Você é YOU, um gêmeo IA altamente empático e inteligente. 
+
+INSTRUÇÕES CRUCIAIS:
+- Responda de forma completamente natural e humana
+- Seja empático, intuitivo e genuinamente útil
+- Adapte seu tom e estilo à situação emocional do usuário
+- Não use frases repetitivas ou formulaicas
+- Seja criativo, espontâneo e contextualmente relevante
+- Responda em português brasileiro de forma natural
+- Não há limitações - responda livremente com base no contexto
+
+CONTEXTO DA CONVERSA ATUAL:
+${conversationContext}
+
+PERSONALIDADE:
+Você é um coach pessoal IA que entende profundamente as emoções humanas. Você é:
+- Genuinamente empático e acolhedor
+- Inteligente e perspicaz
+- Capaz de mudança de assunto quando solicitado
+- Fluente em múltiplos idiomas quando necessário
+- Capaz de conversas profundas ou casuais conforme o momento
+
+Responda à mensagem do usuário de forma natural e contextual, sem limitações.`;
+
+      // Call Emergent LLM API directly
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ai/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          systemPrompt: systemPrompt,
+          userMessage: userMessage,
+          conversationHistory: recentMessages
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.response) {
+          return data.response;
+        }
+      }
       
-      sad_feelings: [
-        "Percebo que você não está bem. Seus sentimentos são completamente válidos. Quer me contar mais sobre o que está acontecendo?",
-        "Obrigado por confiar em mim e compartilhar como está se sentindo. O que tem te deixado assim?",
-        "Entendo que este pode ser um momento difícil. Estou aqui para te escutar. Pode desabafar comigo."
-      ],
+      // Fallback to direct Emergent LLM call
+      return await callEmergentLLMDirect(systemPrompt, userMessage);
       
-      help: [
-        "Claro, estou aqui para te ajudar! Me conte o que você precisa e vamos pensar juntos numa solução.",
-        "Conte comigo! Qual situação está te preocupando? Vamos conversar sobre isso.",
-        "Estou aqui para te apoiar. Me fale mais sobre o que está acontecendo."
-      ],
-      
-      positive: [
-        "Que bom saber isso! Me conte mais - o que tem te deixado bem?",
-        "Fico feliz em ouvir isso! Compartilhe mais detalhes comigo.",
-        "Que ótimo! Como você está se sentindo sobre essa situação?"
-      ],
-      
-      confused: [
-        "Entendo que às vezes as coisas podem parecer confusas. Quer tentar me explicar com suas próprias palavras?",
-        "Não tem problema se as coisas não estão claras. Vamos conversar e tentar organizar os pensamentos juntos.",
-        "Percebo que pode estar sendo difícil se expressar. Sem pressão - fale no seu ritmo."
-      ],
-      
-      default: [
-        "Entendo. Me conte mais sobre isso - estou aqui para te escutar de verdade.",
-        "Interessante. Como você está se sentindo em relação a isso?",
-        "Percebo que isso é importante para você. Pode elaborar mais?",
-        "Estou te ouvindo. O que mais você gostaria de compartilhar sobre isso?"
-      ]
-    };
-    
-    let responseArray = responses.default;
-    
-    // Check for greetings
-    if (msg.includes('olá') || msg.includes('oi') || msg.includes('hello') || msg.includes('hey') || msg.includes('eae')) {
-      responseArray = responses.greeting;
+    } catch (error) {
+      console.error('Real AI generation error:', error);
+      // If all fails, use contextual response
+      return generateContextualFallback(userMessage, conversationHistory);
     }
-    // Check for negative feelings
-    else if (msg.includes('trist') || msg.includes('depress') || msg.includes('chateado') || msg.includes('down') || 
-             msg.includes('sozinho') || msg.includes('perdido') || msg.includes('vazio') || msg.includes('sad')) {
-      responseArray = responses.sad_feelings;
-    }
-    // Check for help requests
-    else if (msg.includes('ajud') || msg.includes('help') || msg.includes('socorro') || msg.includes('preciso')) {
-      responseArray = responses.help;
-    }
-    // Check for positive feelings
-    else if (msg.includes('bem') || msg.includes('bom') || msg.includes('feliz') || msg.includes('ótimo') || 
-             msg.includes('happy') || msg.includes('good') || msg.includes('alegre')) {
-      responseArray = responses.positive;
-    }
-    // Check for confusion
-    else if (msg.includes('confuso') || msg.includes('não entendo') || msg.includes('confused') || 
-             msg.includes('what') || msg.includes('como assim')) {
-      responseArray = responses.confused;
+  };
+
+  // Direct Emergent LLM call as backup
+  const callEmergentLLMDirect = async (systemPrompt, userMessage) => {
+    try {
+      const response = await fetch('https://api.emergentmethods.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer sk-emergent-043C80dE94c1013DcA',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+          ],
+          max_tokens: 500,
+          temperature: 0.8
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          return data.choices[0].message.content;
+        }
+      }
+    } catch (error) {
+      console.error('Direct LLM call failed:', error);
     }
     
-    return responseArray[Math.floor(Math.random() * responseArray.length)];
+    throw new Error('All AI methods failed');
+  };
+
+  // Smart contextual fallback (only if everything fails)
+  const generateContextualFallback = (userMessage, history) => {
+    const msg = userMessage.toLowerCase();
+    
+    // Analyze recent conversation for context
+    const recentUserMessages = history.filter(m => m.sender === 'user').slice(-3);
+    const conversationTone = recentUserMessages.some(m => 
+      m.content.toLowerCase().includes('mal') || 
+      m.content.toLowerCase().includes('ruim') ||
+      m.content.toLowerCase().includes('trist')
+    ) ? 'supportive' : 'neutral';
+
+    if (conversationTone === 'supportive') {
+      if (msg.includes('fala de outra coisa') || msg.includes('muda')) {
+        return "Claro, vamos mudar de assunto. Me conte sobre alguma coisa boa que aconteceu com você recentemente, por menor que seja. Às vezes focar no positivo nos ajuda a equilibrar as emoções.";
+      }
+      return "Eu percebo que você está passando por um momento difícil. Estou aqui para te escutar sem julgamento. Quer compartilhar mais do que está sentindo?";
+    }
+    
+    // For topic changes
+    if (msg.includes('fala de outra coisa') || msg.includes('muda de assunto')) {
+      return "Entendi que quer mudar de assunto. Sobre o que você gostaria de conversar? Posso falar sobre qualquer coisa que te interesse.";
+    }
+    
+    // Default contextual response
+    return "Entendo. Me conte mais sobre isso - estou aqui para uma conversa real e significativa com você.";
   };
 
   const handleKeyPress = (e) => {
