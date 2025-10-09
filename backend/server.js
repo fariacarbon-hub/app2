@@ -20,6 +20,7 @@ const goalsRoutes = require('./routes/goals');
 const quizRoutes = require('./routes/quiz');
 const analyticsRoutes = require('./routes/analytics');
 const supportRoutes = require('./routes/support');
+const aiRoutes = require('./routes/ai');
 const paymentsRoutes = require('./routes/payments');
 
 const app = express();
