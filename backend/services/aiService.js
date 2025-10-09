@@ -83,7 +83,12 @@ class AIService {
       
       const messagesJson = JSON.stringify(messages);
       
-      const command = `cd /app/backend/services && EMERGENT_LLM_KEY="${this.apiKey}" python3 emergentLLM.py "${messagesJson}"`;
+      // Write messages to temp file to avoid shell escaping issues
+      const fs = require('fs');
+      const tempFile = `/tmp/messages_${Date.now()}.json`;
+      fs.writeFileSync(tempFile, messagesJson);
+      
+      const command = `cd /app/backend/services && EMERGENT_LLM_KEY="${this.apiKey}" python3 emergentLLM.py "${tempFile}"`;
       
       exec(command, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
         if (error) {
