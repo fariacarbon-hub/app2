@@ -208,8 +208,8 @@ const ChatPage = () => {
   };
 
   const generateLocalAIResponse = (userMessage) => {
-    // Fallback response when AI API fails - make it obvious it's a fallback
-    return `[ERRO NA IA] Desculpe, estou com problemas técnicos temporários. Estou trabalhando para resolver isso. Por favor, tente novamente em alguns instantes ou recarregue a página.`;
+    // Fallback should never be needed now, but just in case
+    return `Desculpe, tive um problema momentâneo. Pode repetir sua pergunta?`;
   };
 
   const handleKeyPress = (e) => {
