@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Frontend Connection</title>
+</head>
+<body>
+    <h1>Test Frontend Connection</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testChat()">Test Chat</button>
+    <div id="result"></div>
+
+    <script>
+        async function testLogin() {
+            try {
+                const response = await fetch('http://localhost:8001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'teste.atlas@exemplo.com',
+                        password: 'MinhaSenh@123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('authToken', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    document.getElementById('result').innerHTML = '✅ Login OK! Token saved: ' + data.data.token.substring(0, 20) + '...';
+                } else {
+                    document.getElementById('result').innerHTML = '❌ Login failed: ' + data.message;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ Error: ' + error.message;
+            }
+        }
+
+        async function testChat() {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    document.getElementById('result').innerHTML = '❌ No token found. Login first.';
+                    return;
+                }
+
+                // First create conversation
+                const convResponse = await fetch('http://localhost:8001/api/chat/conversations', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: 'Test Conversation'
+                    })
+                });
+
+                const convData = await convResponse.json();
+                console.log('Conversation response:', convData);
+
+                if (convData.success) {
+                    const conversationId = convData.data.conversation._id;
+                    
+                    // Now send message
+                    const messageResponse = await fetch(`http://localhost:8001/api/chat/conversations/${conversationId}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            content: 'Olá! Este é um teste direto da IA.',
+                            type: 'user'
+                        })
+                    });
+
+                    const messageData = await messageResponse.json();
+                    console.log('Message response:', messageData);
+
+                    if (messageData.success && messageData.data.aiResponse) {
+                        document.getElementById('result').innerHTML = '✅ Chat OK! AI Response: ' + messageData.data.aiResponse.content.substring(0, 100) + '...';
+                    } else {
+                        document.getElementById('result').innerHTML = '❌ Chat failed: ' + JSON.stringify(messageData);
+                    }
+                } else {
+                    document.getElementById('result').innerHTML = '❌ Conversation creation failed: ' + convData.message;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ Chat error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
