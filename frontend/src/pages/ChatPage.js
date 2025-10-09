@@ -208,16 +208,8 @@ const ChatPage = () => {
   };
 
   const generateLocalAIResponse = (userMessage) => {
-    const responses = [
-      `Entendo que você está compartilhando isso comigo. Com base no que você disse, percebo que há sentimentos importantes envolvidos. Como você se sente ao falar sobre isso?`,
-      `Isso é uma reflexão muito válida. Vejo que você está desenvolvendo maior autoconsciência sobre essa situação. O que mais você gostaria de explorar sobre isso?`,
-      `Percebo que este tema é significativo para você. Sua disposição para refletir sobre esses pensamentos mostra maturidade emocional. Que pequeno passo você poderia dar hoje?`,
-      `Agradeço por compartilhar isso comigo. Cada vez que conversamos, aprendo mais sobre como você pensa e sente. Como posso te apoiar melhor neste momento?`,
-      `Vejo uma oportunidade interessante aqui para crescimento pessoal. Você tem mostrado grande capacidade de reflexão. O que você acha que poderia fazer diferente?`,
-      `Entendo sua perspectiva sobre isso. É normal ter esses sentimentos, e é corajoso de sua parte explorá-los. Vamos conversar mais sobre o que você está sentindo?`
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
+    // Fallback response when AI API fails - make it obvious it's a fallback
+    return `[ERRO NA IA] Desculpe, estou com problemas técnicos temporários. Estou trabalhando para resolver isso. Por favor, tente novamente em alguns instantes ou recarregue a página.`;
   };
 
   const handleKeyPress = (e) => {
