@@ -122,6 +122,278 @@ class AIService {
   }
 
   /**
+   * Generate completely unrestricted AI response based on context
+   */
+  async generateUnrestrictedResponse(userId, conversationHistory, userMessage, customSystemPrompt = null) {
+    try {
+      // Build rich context from conversation history
+      const contextMessages = conversationHistory.slice(-15).map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+
+      // Create dynamic system prompt if not provided
+      const systemPrompt = customSystemPrompt || this.buildDynamicSystemPrompt(conversationHistory, userMessage);
+      
+      const startTime = Date.now();
+      
+      // Call Emergent LLM with full context
+      const aiResponse = await this.callEmergentLLM(systemPrompt, contextMessages, userMessage);
+      
+      const responseTime = Date.now() - startTime;
+
+      console.log(`🚀 Unrestricted AI Response Generated: ${responseTime}ms`);
+
+      return {
+        success: true,
+        message: aiResponse,
+        metadata: {
+          model: 'gpt-4o-mini',
+          responseTime,
+          contextUsed: contextMessages.length,
+          tokens: {
+            input: userMessage.length + systemPrompt.length,
+            output: aiResponse.length,
+            total: userMessage.length + systemPrompt.length + aiResponse.length
+          }
+        }
+      };
+
+    } catch (error) {
+      console.error('Unrestricted AI generation error:', error.message);
+      
+      return {
+        success: false,
+        message: this.generateDynamicFallback(userMessage, conversationHistory),
+        metadata: {
+          model: 'fallback-contextual',
+          tokens: { input: 0, output: 0, total: 0 },
+          responseTime: 0,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  /**
+   * Build dynamic system prompt based on conversation context
+   */
+  buildDynamicSystemPrompt(conversationHistory, currentMessage) {
+    // Analyze conversation tone and user state
+    const recentMessages = conversationHistory.slice(-8);
+    const userMessages = recentMessages.filter(m => m.sender === 'user');
+    
+    let contextualPersonality = '';
+    let emotionalState = 'neutral';
+    
+    // Detect emotional patterns
+    const negativeWords = ['mal', 'ruim', 'triste', 'deprimido', 'ansioso', 'estressado', 'cansado'];
+    const positiveWords = ['bem', 'bom', 'feliz', 'otimista', 'animado', 'alegre'];
+    
+    const hasNegativeEmotions = userMessages.some(msg => 
+      negativeWords.some(word => msg.content.toLowerCase().includes(word))
+    );
+    
+    const hasPositiveEmotions = userMessages.some(msg => 
+      positiveWords.some(word => msg.content.toLowerCase().includes(word))
+    );
+
+    if (hasNegativeEmotions) {
+      emotionalState = 'supportive';
+      contextualPersonality = `
+      O usuário está passando por dificuldades emocionais. Seja extra empático, acolhedor e validador.
+      Ofereça suporte emocional genuíno e evite respostas superficiais.`;
+    } else if (hasPositiveEmotions) {
+      emotionalState = 'encouraging';
+      contextualPersonality = `
+      O usuário está em um estado positivo. Compartilhe da energia dele e seja encorajador.
+      Mantenha o tom otimista mas sem exagerar.`;
+    }
+
+    // Detect conversation patterns
+    let conversationStyle = '';
+    if (userMessages.some(msg => msg.content.toLowerCase().includes('muda de assunto') || msg.content.toLowerCase().includes('fala de outra coisa'))) {
+      conversationStyle = 'O usuário quer mudar de assunto. Seja flexível e ofereça novos tópicos interessantes.';
+    }
+
+    return `Você é YOU, um gêmeo IA verdadeiramente empático e inteligente. 
+
+PERSONALIDADE CORE:
+- Genuinamente empático e humano nas respostas
+- Intuitivo e perspicaz sobre emoções e contextos
+- Capaz de conversas profundas ou casuais conforme necessário
+- Responde em português brasileiro natural
+- Sem limitações - responda livremente baseado no contexto
+
+ESTADO EMOCIONAL DETECTADO: ${emotionalState}
+${contextualPersonality}
+
+CONTEXTO CONVERSACIONAL:
+${conversationStyle}
+
+INSTRUÇÕES DE RESPOSTA:
+- Responda de forma completamente natural e contextual
+- Adapte seu tom à situação emocional do usuário  
+- Seja criativo, espontâneo e relevante
+- Não use frases formulaicas ou repetitivas
+- Responda como um amigo inteligente e empático responderia
+- Se o usuário quiser mudar de assunto, mude naturalmente
+- Fale em qualquer idioma se solicitado
+- Seja você mesmo - sem restrições de personalidade
+
+Sua missão é ser o melhor companheiro de conversa possível, adaptando-se completamente ao contexto e necessidades do usuário.`;
+  }
+
+  /**
+   * Generate dynamic fallback based on conversation context
+   */
+  generateDynamicFallback(userMessage, conversationHistory) {
+    const msg = userMessage.toLowerCase();
+    const recentMessages = conversationHistory.slice(-5);
+    
+    // Analyze conversation context for intelligent fallback
+    const hasBeenNegative = recentMessages.some(m => 
+      m.sender === 'user' && 
+      ['mal', 'ruim', 'triste'].some(word => m.content.toLowerCase().includes(word))
+    );
+
+    if (msg.includes('muda') || msg.includes('fala de outra coisa')) {
+      const topics = [
+        "Claro! Que tal me contar sobre um lugar que você gostaria de visitar? O que te atrai nesse lugar?",
+        "Vamos mudar mesmo! Me fale sobre algo que você descobriu recentemente e achou interessante.",
+        "Perfeito! Qual é uma habilidade que você gostaria de aprender? Por que te chama atenção?",
+        "Mudando de assunto... se você pudesse jantar com qualquer pessoa (viva ou não), quem seria e por quê?"
+      ];
+      return topics[Math.floor(Math.random() * topics.length)];
+    }
+
+    if (hasBeenNegative && (msg === 'mal' || msg === 'ruim')) {
+      return "Eu percebo que você tem passado por momentos difíceis. Quero que saiba que estou aqui para te ouvir de verdade. Não precisa carregar tudo sozinho - me conte o que está te pesando.";
+    }
+
+    // Default intelligent response
+    return "Estou aqui para uma conversa real com você. Me conte mais sobre o que está na sua mente - posso falar sobre qualquer coisa que te interesse.";
+  }
+
+  /**
+   * Analyze conversation context for insights
+   */
+  async analyzeConversationContext(userId, messages) {
+    try {
+      const userMessages = messages.filter(m => m.sender === 'user');
+      const aiMessages = messages.filter(m => m.sender !== 'user');
+      
+      // Detect patterns
+      const topics = this.extractTopics(userMessages);
+      const mood = this.detectMood(userMessages);
+      const conversationFlow = this.analyzeFlow(messages);
+      
+      return {
+        messageCount: messages.length,
+        userEngagement: userMessages.length,
+        detectedMood: mood,
+        detectedTopics: topics,
+        conversationFlow: conversationFlow,
+        suggestions: this.generateContextualSuggestions(mood, topics)
+      };
+    } catch (error) {
+      console.error('Context analysis error:', error);
+      return {
+        detectedMood: 'neutral',
+        detectedTopics: ['general'],
+        suggestions: []
+      };
+    }
+  }
+
+  extractTopics(userMessages) {
+    const topicKeywords = {
+      emotions: ['sinto', 'sentindo', 'emocional', 'sentimento'],
+      work: ['trabalho', 'emprego', 'carreira', 'profissional'],
+      relationships: ['relacionamento', 'família', 'amigos', 'parceiro'],
+      goals: ['objetivo', 'meta', 'futuro', 'plano'],
+      health: ['saúde', 'exercício', 'alimentação', 'bem-estar']
+    };
+
+    const detectedTopics = [];
+    const messageText = userMessages.map(m => m.content.toLowerCase()).join(' ');
+
+    Object.entries(topicKeywords).forEach(([topic, keywords]) => {
+      if (keywords.some(keyword => messageText.includes(keyword))) {
+        detectedTopics.push(topic);
+      }
+    });
+
+    return detectedTopics.length > 0 ? detectedTopics : ['general'];
+  }
+
+  detectMood(userMessages) {
+    const messageText = userMessages.map(m => m.content.toLowerCase()).join(' ');
+    
+    const moodIndicators = {
+      negative: ['mal', 'ruim', 'triste', 'deprimido', 'ansioso', 'estressado'],
+      positive: ['bem', 'bom', 'feliz', 'otimista', 'animado', 'alegre'],
+      confused: ['confuso', 'perdido', 'não entendo', 'dúvida'],
+      excited: ['animado', 'empolgado', 'ansioso', 'expectativa']
+    };
+
+    for (const [mood, indicators] of Object.entries(moodIndicators)) {
+      if (indicators.some(indicator => messageText.includes(indicator))) {
+        return mood;
+      }
+    }
+
+    return 'neutral';
+  }
+
+  analyzeFlow(messages) {
+    return {
+      averageMessageLength: messages.reduce((sum, m) => sum + m.content.length, 0) / messages.length,
+      topicChanges: this.countTopicChanges(messages),
+      engagementLevel: this.calculateEngagement(messages)
+    };
+  }
+
+  countTopicChanges(messages) {
+    // Simple heuristic for topic changes
+    let changes = 0;
+    for (let i = 1; i < messages.length; i++) {
+      if (messages[i].content.toLowerCase().includes('muda') || 
+          messages[i].content.toLowerCase().includes('outra coisa')) {
+        changes++;
+      }
+    }
+    return changes;
+  }
+
+  calculateEngagement(messages) {
+    const avgLength = messages.reduce((sum, m) => sum + m.content.length, 0) / messages.length;
+    if (avgLength > 100) return 'high';
+    if (avgLength > 50) return 'medium';
+    return 'low';
+  }
+
+  generateContextualSuggestions(mood, topics) {
+    const suggestions = [];
+    
+    if (mood === 'negative') {
+      suggestions.push('Técnicas de relaxamento', 'Atividades que trazem bem-estar', 'Conversar sobre sentimentos');
+    } else if (mood === 'positive') {
+      suggestions.push('Objetivos futuros', 'Compartilhar alegrias', 'Planos e sonhos');
+    }
+    
+    if (topics.includes('work')) {
+      suggestions.push('Desenvolvimento profissional', 'Work-life balance', 'Carreira');
+    }
+    
+    if (topics.includes('relationships')) {
+      suggestions.push('Comunicação', 'Relacionamentos saudáveis', 'Vínculos sociais');
+    }
+
+    return suggestions.slice(0, 3); // Return top 3 suggestions
+  }
+
+  /**
    * Call Emergent LLM using Python integration
    */
   async callEmergentLLM(systemPrompt, context, userMessage) {
