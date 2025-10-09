@@ -154,17 +154,30 @@ const ChatPage = () => {
       // ALWAYS use backend API - force real AI
       let aiResponse = null;
       
-      // ALWAYS WORK - Generate intelligent contextual responses
-      aiResponse = generateIntelligentResponse(userMessage);
-
-      // Save to backend in background (non-blocking)
+      // REAL AI - Direct API call to generate dynamic responses
       try {
-        chatAPI.sendMessage(currentConversation._id, {
-          content: userMessage,
-          type: 'user'
-        }).catch(err => console.log('Background save failed:', err));
-      } catch (e) {
-        // Silent fail - user doesn't see errors
+        console.log('🤖 Calling REAL AI...');
+        
+        const response = await generateRealAIResponse(userMessage, messages);
+        
+        if (response && response.length > 0) {
+          aiResponse = response;
+          console.log('✅ Real AI response received');
+        } else {
+          throw new Error('Empty AI response');
+        }
+        
+        // Save to backend in background 
+        try {
+          chatAPI.sendMessage(currentConversation._id, {
+            content: userMessage,
+            type: 'user'
+          }).catch(err => console.log('Background save:', err));
+        } catch (e) {}
+        
+      } catch (error) {
+        console.error('❌ Real AI failed:', error);
+        aiResponse = `Desculpe, estou com problemas técnicos no momento. Pode tentar novamente?`;
       }
 
       // Add AI response after delay
