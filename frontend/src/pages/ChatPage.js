@@ -165,8 +165,8 @@ const ChatPage = () => {
             type: 'user'
           });
           
-          if (response.success && response.data.aiMessage) {
-            aiResponse = response.data.aiMessage.content;
+          if (response.success && response.data.aiResponse) {
+            aiResponse = response.data.aiResponse.content;
           } else {
             // Backend failed, use local AI
             aiResponse = generateLocalAIResponse(userMessage);
