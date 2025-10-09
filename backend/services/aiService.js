@@ -419,19 +419,20 @@ Formato JSON:
   "motivation": "mensagem motivacional"
 }`;
 
-      const response = await axios.post(`${this.baseURL}/chat/completions`, {
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 400,
-        temperature: 0.8
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      return JSON.parse(response.data.choices[0].message.content);
+      // Use same Emergent LLM integration for insights
+      const messages = [{ role: 'user', content: prompt }];
+      const response = await this.callEmergentLLM("", [], prompt);
+      
+      try {
+        return JSON.parse(response);
+      } catch (e) {
+        // If response is not JSON, return a fallback structure
+        return {
+          insights: [response.substring(0, 100)],
+          recommendations: ["Continue explorando seus padrões e objetivos."],
+          motivation: "Cada insight é um passo em direção ao seu crescimento!"
+        };
+      }
       
     } catch (error) {
       console.error('Daily Insights Error:', error.message);
