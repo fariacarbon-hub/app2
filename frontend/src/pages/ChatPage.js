@@ -341,7 +341,7 @@ Você é um coach pessoal IA que entende profundamente as emoções humanas. Voc
 
 Responda à mensagem do usuário de forma natural e contextual, sem limitações.`;
 
-      // Call Emergent LLM API directly
+      // Call backend API (SECURE)
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ai/generate`, {
         method: 'POST',
         headers: {
@@ -362,8 +362,7 @@ Responda à mensagem do usuário de forma natural e contextual, sem limitações
         }
       }
       
-      // Fallback to direct Emergent LLM call
-      return await callEmergentLLMDirect(systemPrompt, userMessage);
+      throw new Error('Backend AI call failed');
       
     } catch (error) {
       console.error('Real AI generation error:', error);
