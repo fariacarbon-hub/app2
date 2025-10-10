@@ -405,71 +405,41 @@ Sua missão é ser o melhor companheiro de conversa possível, adaptando-se comp
         { role: 'user', content: userMessage }
       ];
       
-      const messagesJson = JSON.stringify(messages);
+      console.log('🤖 Calling Emergent LLM API directly');
       
-      // Write messages to temp file to avoid shell escaping issues
-      const tempFile = `/tmp/messages_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.json`;
-      fs.writeFileSync(tempFile, messagesJson);
+      // Direct HTTP call to Emergent LLM API
+      const axios = require('axios');
       
-      return new Promise((resolve, reject) => {
-        const pythonScript = path.join(__dirname, 'emergentLLM.py');
-        const command = `cd ${path.dirname(pythonScript)} && EMERGENT_LLM_KEY="${this.apiKey}" python3 "${pythonScript}" "${tempFile}"`;
-        
-        console.log('Executing AI command:', command.replace(this.apiKey, 'sk-***'));
-        
-        exec(command, { 
-          maxBuffer: 2 * 1024 * 1024, // 2MB buffer
-          timeout: 15000 // 15s timeout
-        }, (error, stdout, stderr) => {
-          // Clean up temp file
-          try {
-            fs.unlinkSync(tempFile);
-          } catch (e) {
-            console.warn('Could not clean temp file:', e.message);
-          }
-          
-          if (error) {
-            console.error('Python exec error:', {
-              code: error.code,
-              signal: error.signal,
-              cmd: command.replace(this.apiKey, 'sk-***'),
-              stderr: stderr
-            });
-            reject(new Error(`AI integration failed: ${error.message}`));
-            return;
-          }
-          
-          if (stderr && !stdout) {
-            console.error('Python stderr only:', stderr);
-            reject(new Error('Python script error'));
-            return;
-          }
-          
-          if (!stdout.trim()) {
-            console.error('Empty response from Python script');
-            reject(new Error('Empty AI response'));
-            return;
-          }
-          
-          try {
-            const result = JSON.parse(stdout.trim());
-            if (result.success) {
-              resolve(result.response);
-            } else {
-              reject(new Error(result.error || 'AI call failed'));
-            }
-          } catch (parseError) {
-            console.error('Parse error:', {
-              error: parseError.message,
-              stdout: stdout.substring(0, 200)
-            });
-            reject(new Error('Invalid AI response format'));
-          }
-        });
+      const response = await axios.post('https://api.emergentmethods.ai/v1/chat/completions', {
+        model: 'gpt-4o-mini',
+        messages: messages,
+        max_tokens: 500,
+        temperature: 0.8,
+        presence_penalty: 0.1,
+        frequency_penalty: 0.1
+      }, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
       });
+
+      if (response.data && response.data.choices && response.data.choices[0]) {
+        const aiResponse = response.data.choices[0].message.content;
+        console.log('✅ Emergent LLM response received');
+        return aiResponse;
+      } else {
+        throw new Error('Invalid API response format');
+      }
+      
     } catch (error) {
-      console.error('AI setup error:', error);
-      throw new Error('AI service setup failed');
+      console.error('Emergent LLM API error:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      throw new Error(`AI API call failed: ${error.message}`);
     }
   }
 
