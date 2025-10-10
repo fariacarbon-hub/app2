@@ -371,38 +371,7 @@ Responda à mensagem do usuário de forma natural e contextual, sem limitações
     }
   };
 
-  // Direct Emergent LLM call as backup
-  const callEmergentLLMDirect = async (systemPrompt, userMessage) => {
-    try {
-      const response = await fetch('https://api.emergentmethods.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer sk-emergent-043C80dE94c1013DcA',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
-          ],
-          max_tokens: 500,
-          temperature: 0.8
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-          return data.choices[0].message.content;
-        }
-      }
-    } catch (error) {
-      console.error('Direct LLM call failed:', error);
-    }
-    
-    throw new Error('All AI methods failed');
-  };
+  // REMOVED - No direct external API calls from frontend for security
 
   // Smart contextual fallback (only if everything fails)
   const generateContextualFallback = (userMessage, history) => {
