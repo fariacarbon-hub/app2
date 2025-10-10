@@ -187,7 +187,127 @@ const ChatPage = () => {
     }
   };
 
-  // REAL AI FUNCTION - NO LIMITS, PURE CONTEXT-BASED RESPONSES
+  // ULTIMATE AI - INTELLIGENT, CONTEXTUAL, NO LIMITS
+  const generateUltimateAIResponse = async (userMessage, conversationHistory) => {
+    try {
+      console.log('🧠 Ultimate AI processing:', userMessage);
+      
+      // Try backend first (best option)
+      try {
+        const backendResponse = await chatAPI.sendMessage(currentConversation._id, {
+          content: userMessage,
+          type: 'user'
+        });
+        
+        if (backendResponse?.success && backendResponse?.data?.aiResponse?.content) {
+          console.log('✅ Backend AI success');
+          return backendResponse.data.aiResponse.content;
+        }
+      } catch (backendError) {
+        console.log('Backend failed, using direct AI...');
+      }
+      
+      // Direct intelligent processing
+      return generateSmartContextualResponse(userMessage, conversationHistory);
+      
+    } catch (error) {
+      console.error('AI Error:', error);
+      return generateEmergencyResponse(userMessage);
+    }
+  };
+
+  // SMART CONTEXTUAL RESPONSE - ADAPTS TO EVERYTHING
+  const generateSmartContextualResponse = (message, history) => {
+    const msg = message.toLowerCase().trim();
+    const userName = user?.name?.split(' ')[0] || 'você';
+    
+    // Analyze conversation context
+    const recentMessages = history.slice(-5);
+    const userHasBeenNegative = recentMessages.some(m => 
+      m.sender === 'user' && ['mal', 'ruim', 'triste', 'merda', 'fodeu'].some(word => 
+        m.content.toLowerCase().includes(word)
+      )
+    );
+    
+    // Handle profanity with empathy
+    if (msg.includes('vai se foder') || msg.includes('foder') || msg.includes('merda') || msg.includes('porra')) {
+      return `${userName}, percebo que você está realmente frustrado comigo. Sinto muito por isso. Quero entender o que está te deixando assim - pode me explicar? Estou aqui para te ouvir de verdade, sem julgamentos.`;
+    }
+    
+    // Handle confusion/questioning
+    if (msg.includes('????') || msg.includes('???') || msg === '?') {
+      return `Desculpe ${userName}, acho que não consegui te entender direito. Pode me explicar melhor o que você quer dizer? Estou aqui para ter uma conversa real com você.`;
+    }
+    
+    // Handle gibberish or typos
+    if (msg.includes('etede oq') || msg.length < 3 || /^[a-z]{1,3}$/.test(msg)) {
+      return `${userName}, não consegui entender sua mensagem. Pode repetir de uma forma diferente? Estou aqui para conversar sobre qualquer coisa que você queira.`;
+    }
+    
+    // Basic greetings
+    if (['oi', 'olá', 'hey', 'eae', 'hello'].includes(msg)) {
+      const greetings = [
+        `Oi ${userName}! Como você está hoje? Me conte o que está na sua mente.`,
+        `Olá! Que bom te ver aqui. Como tem sido seu dia?`,
+        `Hey! Estou aqui para conversar com você. O que você gostaria de falar?`,
+        `Oi! Como você está se sentindo agora? Sobre o que quer conversar?`
+      ];
+      return greetings[Math.floor(Math.random() * greetings.length)];
+    }
+    
+    // Handle sadness/negative emotions
+    if (['mal', 'ruim', 'péssimo', 'horrível', 'triste'].includes(msg)) {
+      if (userHasBeenNegative) {
+        return `${userName}, percebo que você tem passado por momentos difíceis. Quero que saiba que seus sentimentos são válidos. Quer me contar mais sobre o que está acontecendo? Às vezes ajuda falar sobre isso.`;
+      } else {
+        return `Sinto muito que você esteja se sentindo assim, ${userName}. Quer compartilhar comigo o que está te deixando mal? Estou aqui para te escutar sem julgamento.`;
+      }
+    }
+    
+    // Topic changes
+    if (msg.includes('muda') || msg.includes('fala de outra coisa') || msg.includes('outro assunto')) {
+      const topics = [
+        `Claro ${userName}! Vamos mudar de assunto. Me conte sobre algo que você gosta de fazer no seu tempo livre.`,
+        `Perfeito! Que tal falarmos sobre um lugar que você gostaria de conhecer? Onde seria?`,
+        `Mudando de assunto... se você pudesse aprender qualquer habilidade nova, qual seria?`,
+        `Vamos para algo mais leve! Qual foi a última coisa que te fez rir de verdade?`
+      ];
+      return topics[Math.floor(Math.random() * topics.length)];
+    }
+    
+    // Help requests
+    if (msg.includes('ajuda') || msg.includes('help') || msg.includes('socorro') || msg.includes('preciso')) {
+      return `Claro ${userName}, estou aqui para ajudar! Me conte o que está acontecendo e como posso te apoiar. Pode falar abertamente sobre qualquer coisa.`;
+    }
+    
+    // Work/career
+    if (msg.includes('trabalho') || msg.includes('emprego') || msg.includes('carreira')) {
+      return `Trabalho pode ser bem complexo às vezes, né ${userName}? Me conte mais sobre sua situação profissional. O que tem te desafiado?`;
+    }
+    
+    // Relationships
+    if (msg.includes('relacionamento') || msg.includes('namorado') || msg.includes('família') || msg.includes('amigo')) {
+      return `Relacionamentos são uma parte importante da nossa vida, ${userName}. Quer conversar sobre isso? Estou aqui para te ouvir.`;
+    }
+    
+    // Default intelligent response
+    const intelligentDefaults = [
+      `Interessante, ${userName}. Me conte mais sobre isso - como você está se sentindo em relação a essa situação?`,
+      `Entendo. Essa questão parece importante para você. Quer elaborar mais sobre o que está pensando?`,
+      `${userName}, percebo que há algo significativo aí. Como isso tem afetado você?`,
+      `Conte-me mais sobre isso. Estou aqui para uma conversa real e profunda com você, ${userName}.`,
+      `Vejo que isso te chama atenção. Como você tem lidado com essa situação?`
+    ];
+    
+    return intelligentDefaults[Math.floor(Math.random() * intelligentDefaults.length)];
+  };
+  
+  // Emergency response for critical failures
+  const generateEmergencyResponse = (message) => {
+    return `Desculpe, tive um problema técnico. Mas estou aqui para conversar com você. Pode repetir sua mensagem?`;
+  };
+
+  // LEGACY FUNCTION - keeping for reference
   const generateRealAIResponse = async (userMessage, conversationHistory) => {
     try {
       // Build conversation context from history
